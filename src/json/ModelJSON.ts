@@ -1,6 +1,6 @@
 export default class ModelJSON {
 
-    public constructor( 
+    public constructor(
         public parent: string,
         public ambientocclusion: boolean = true,
         public display: Display,
@@ -11,7 +11,7 @@ export default class ModelJSON {
     toJSON(): any {
 
         return Object.assign( {}, this );
-        
+
     }
 
     static fromJSON( json: any ): ModelJSON {
@@ -30,9 +30,9 @@ export class Display {
         public thirdperson_lefthand: Transform,
         public firstperson_righthand: Transform,
         public firstperson_lefthand: Transform,
-        public gui: Transform, 
-        public head: Transform, 
-        public ground: Transform, 
+        public gui: Transform,
+        public head: Transform,
+        public ground: Transform,
         public fixed: Transform
     ) {}
 
@@ -40,7 +40,7 @@ export class Display {
 
 export class Transform {
 
-    public constructor( 
+    public constructor(
         public rotation: number[],
         public translation: number[],
         public scale: number[]
@@ -78,7 +78,7 @@ export enum Axis {
 }
 
 export class Faces {
-    
+
     public constructor(
         public down: Face,
         public up: Face,

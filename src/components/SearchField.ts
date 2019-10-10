@@ -6,6 +6,7 @@ export default class SearchField extends Group {
     public text: string = '';
     public textPosition: number = 0;
     public cursor: Mesh;
+    private intervalID: NodeJS.Timer;
 
     constructor() {
 
@@ -18,7 +19,7 @@ export default class SearchField extends Group {
 
         this.add( this.cursor );
 
-        setInterval( () => this.cursor.visible = !this.cursor.visible, 200 );
+        this.intervalID = setInterval( () => this.cursor.visible = !this.cursor.visible, 200 );
 
     }
 
@@ -67,6 +68,12 @@ export default class SearchField extends Group {
     updateCursor() {
 
         this.cursor.position.x = this.textPosition + getCharWidth( '_' ) / 2;
+
+    }
+
+    dispose() {
+
+        clearInterval( this.intervalID );
 
     }
 

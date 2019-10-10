@@ -1,14 +1,26 @@
-import { Group, TextureLoader, PlaneGeometry, Mesh, Vector2, NearestFilter, MeshBasicMaterial, Box2, Texture, Material, Object3D } from "three";
+import {
+    Group,
+    TextureLoader,
+    PlaneGeometry,
+    Mesh,
+    Vector2,
+    NearestFilter,
+    MeshBasicMaterial,
+    Box2,
+    Texture,
+    Material,
+    Object3D
+} from 'three';
 
-const textureLoader = new TextureLoader();
+const textureLoader: TextureLoader = new TextureLoader();
 
-const asciiTexture = textureLoader.load( `/assets/font/ascii.png` );
+const asciiTexture: Texture = textureLoader.load( `/assets/font/ascii.png` );
 asciiTexture.magFilter = NearestFilter;
 asciiTexture.minFilter = NearestFilter;
-const asciiMaterial = new MeshBasicMaterial( { map: asciiTexture, transparent: true, alphaTest: 1, depthTest: false } );
-const asciiMaterialPhysical = new MeshBasicMaterial( { map: asciiTexture, transparent: true, alphaTest: 1 } );
+const asciiMaterial: MeshBasicMaterial = new MeshBasicMaterial( { map: asciiTexture, transparent: true, alphaTest: 1, depthTest: false } );
+const asciiMaterialPhysical: MeshBasicMaterial = new MeshBasicMaterial( { map: asciiTexture, transparent: true, alphaTest: 1 } );
 
-const charWidth = new Int8Array([
+const charWidth: Int8Array = new Int8Array([
 
     6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
     4, 6, 6, 8, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0,
@@ -29,7 +41,7 @@ const charWidth = new Int8Array([
 
 ]);
 
-const minecraftASCII = 'ÀÁÂÈÊËÍÓÔŌÚßāōğİ\
+const minecraftASCII: string = 'ÀÁÂÈÊËÍÓÔŌÚßāōğİ\
  ŒœŞşŴŵžê       \
  !"#$%&\'()*+,-./\
 0123456789:;<=>?\
@@ -54,16 +66,16 @@ export function getCharWidth( str: string ): number {
 
 console.log( minecraftASCII.length );
 
-const unicodeTextures = new Array<Texture>();
-const unicodeMaterials = new Array<Material>();
+const unicodeTextures: Array<Texture> = [];
+const unicodeMaterials: Array<Material> = [];
 
 function getTexture( index: number ): Texture {
 
-    const page = index >> 8;
+    const page: number = index >> 8;
 
     if ( !unicodeTextures.hasOwnProperty( page ) ) {
 
-        let id = '00' + page.toString(16);
+        let id: string = '00' + page.toString(16);
         id = id.substr( id.length - 2, 2 );
 
         unicodeTextures[ page ] = textureLoader.load( `/assets/font/unicode_page_${ id }.png` );
@@ -78,11 +90,11 @@ function getTexture( index: number ): Texture {
 
 function getMaterial( index: number ): Material {
 
-    const page = index >> 8;
+    const page: number = index >> 8;
 
     if ( !unicodeMaterials.hasOwnProperty( page ) ) {
 
-        const texture = getTexture( index );
+        const texture: Texture = getTexture( index );
 
         unicodeMaterials[ page ] = new MeshBasicMaterial( { map: texture, transparent: true } );
 
@@ -95,17 +107,16 @@ function getMaterial( index: number ): Material {
 export function createMinecraftChar( char: string, physical = true ): Mesh {
 
     // TODO: how do i know to width of letters?
-    const ascii = minecraftASCII.indexOf(char[0]);
-    console.log( char[0], ascii );
-    const width = charWidth[ ascii ];
+    const ascii: number = minecraftASCII.indexOf(char[0]);
+    const width: number = charWidth[ ascii ];
 
-    const geometry = new PlaneGeometry( width, 8 );
+    const geometry: PlaneGeometry = new PlaneGeometry( width, 8 );
 
-    let x = ascii & 0x0F;
-    let y = (ascii & 0xF0) >> 4;
+    let x: number = ascii & 0x0F;
+    let y: number = (ascii & 0xF0) >> 4;
     y = 0xF - y;
 
-    let uv = new Box2(
+    let uv: Box2 = new Box2(
 
         new Vector2( x / 16, y / 16 ),
         new Vector2( ( x + width / 8 ) / 16, ( y + 1 ) / 16 )
@@ -113,12 +124,12 @@ export function createMinecraftChar( char: string, physical = true ): Mesh {
     );
 
     geometry.faceVertexUvs[0] = [
-        [ 
+        [
             new Vector2( uv.min.x, uv.max.y ),
             new Vector2( uv.min.x, uv.min.y ),
             new Vector2( uv.max.x, uv.max.y )
         ],
-        [ 
+        [
             new Vector2( uv.min.x, uv.min.y ),
             new Vector2( uv.max.x, uv.min.y ),
             new Vector2( uv.max.x, uv.max.y )
@@ -128,7 +139,7 @@ export function createMinecraftChar( char: string, physical = true ): Mesh {
     geometry.uvsNeedUpdate = true;
 
     // const material = getMaterial( unicode );
-    const mesh = new Mesh( geometry, physical ? asciiMaterialPhysical : asciiMaterial );
+    const mesh: Mesh = new Mesh( geometry, physical ? asciiMaterialPhysical : asciiMaterial );
 
     return mesh;
 
@@ -139,11 +150,11 @@ export default class MinecraftText extends Object3D {
     private textPosition: number;
 
     /**
-     * 
-     * @param {string} text 
+     *
+     * @param {string} text
      */
     public constructor( public text: string, physical = true ) {
-        
+
         super();
 
         this.textPosition = 0;
@@ -154,10 +165,10 @@ export default class MinecraftText extends Object3D {
 
         }
 
-        for ( let i = 0; i < text.length; i++ ) {
+        for ( let i: number = 0; i < text.length; i++ ) {
 
-            const mesh = createMinecraftChar( text[i], physical );
-            
+            const mesh: Mesh = createMinecraftChar( text[i], physical );
+
             mesh.position.set( this.textPosition + charWidth[ text.charCodeAt( i ) ] / 2, 4, 0 );
             this.textPosition += charWidth[ text.charCodeAt( i ) ];
 

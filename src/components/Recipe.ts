@@ -1,17 +1,17 @@
-import { 
-    Group, 
-    Mesh, 
-    MeshBasicMaterial, 
-    PlaneGeometry, 
-    NearestFilter, 
-    TextureLoader, 
-    FileLoader 
-} from "three";
-import { loadAync, maybeToArray } from "../util";
-import Item from "./Item";
-import MinecraftText from "./MinecraftText";
-import RecipeJSON, { Ingredient, CraftingShapedRecipeJSON, CraftingShaplessRecipeJSON, CookingRecipeJSON, StonecuttingRecipeJSON } from "../json/RecipeJSON";
-import TagJSON from "../json/TagJSON";
+import {
+    Group,
+    Mesh,
+    MeshBasicMaterial,
+    PlaneGeometry,
+    NearestFilter,
+    TextureLoader,
+    FileLoader
+} from 'three';
+import { loadAync, maybeToArray } from '../util';
+import Item from './Item';
+import MinecraftText from './MinecraftText';
+import RecipeJSON, { Ingredient, CraftingShapedRecipeJSON, CraftingShaplessRecipeJSON, CookingRecipeJSON, StonecuttingRecipeJSON } from '../json/RecipeJSON';
+import TagJSON from '../json/TagJSON';
 
 const textureLoader = new TextureLoader();
 const jsonLoader = new FileLoader();
@@ -23,7 +23,7 @@ async function unwrapItem( item: Ingredient ): Promise<string|string[]> {
     if ( item.hasOwnProperty( 'tag' ) ) {
 
         const tags = TagJSON.fromJSON( await loadAync.call( jsonLoader, `/assets/tags/items/${ item.tag.substring( 10 ) }.json` ) );
-        
+
         return tags.values;
 
     }
@@ -38,18 +38,32 @@ async function unwrapItem( item: Ingredient ): Promise<string|string[]> {
 
 }
 
+const workstation: Map<string, string> = new Map( [
+    [ 'minecraft:blasting', 'blast_furnace' ],
+    [ 'minecraft:campfire_cooking', 'campfire' ],
+    [ 'minecraft:smelting', 'furnace' ],
+    [ 'minecraft:smoking', 'smoker' ],
+    [ 'minecraft:crafting_shaped', 'crafting_table' ],
+    [ 'minecraft:crafting_shapeless', 'crafting_table' ],
+    [ 'minecraft:stonecutting', 'stonecutter' ]
+] );
+
 /**
  * Creates the neccessary items and textures to display an recipe
  */
 export default class Recipe extends Group {
 
     public recipe: RecipeJSON;
+    public background: Mesh;
+    public icon: Item;
+    public title: MinecraftText;
+    public itemGroup: Group;
 
     /**
-     * 
+     *
      * @param {string} item The name of the crafting recipe to load
      */
-    constructor( public item: string ) {
+    public constructor( public item: string, callback?: VoidFunction ) {
 
         super();
 
@@ -57,13 +71,13 @@ export default class Recipe extends Group {
 
     }
 
-    async load() {
+    private async load() {
 
         const name = this.item.substring( this.item.lastIndexOf( ':' ) + 1 );
 
-        this.recipe = RecipeJSON.fromJSON( await loadAync.call( 
-            jsonLoader, 
-            `/assets/recipes/${name}.json` 
+        this.recipe = RecipeJSON.fromJSON( await loadAync.call(
+            jsonLoader,
+            `/assets/recipes/${name}.json`
         ) );
 
         if ( this.recipe instanceof CraftingShapedRecipeJSON ) {
@@ -101,34 +115,48 @@ export default class Recipe extends Group {
      * @param {string} name The name of the background image
      * @param {string} title A title displayed above the work station
      */
-    async createBackground( name: string, title?: string ) {
+    private async createBackground( name: string, title?: string ) {
 
         const texture = await loadAync.call( textureLoader, `/assets/gui/${name}.png` );
         texture.name = name;
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
 
-        const geometry = new PlaneGeometry( 
-            texture.image.width, 
-            texture.image.height 
+        const geometry = new PlaneGeometry(
+            texture.image.width,
+            texture.image.height
         );
         const material = new MeshBasicMaterial( { map: texture, transparent: true } );
-        const plane = new Mesh( geometry, material );
-        plane.name = name;
-        plane.position.z = -8;
+        this.background = new Mesh( geometry, material );
+        this.background.name = name;
+        this.background.position.z = -8;
 
-        this.add( plane );
+        this.add( this.background );
 
-        const text = new MinecraftText( title );
-        text.position.set( -texture.image.width / 2 + 8, texture.image.height / 2 + 1, -4 )
-        this.add( text );
+        if ( workstation.has( this.recipe.type ) ) {
+
+            this.icon = new Item( workstation.get( this.recipe.type ) );
+
+        }
+        else {
+
+            this.icon = new Item( 'crafting_table' );
+
+        }
+
+        this.icon.position.set( -texture.image.width / 2 + 8, texture.image.height / 2 + 4, -4 );
+
+        this.title = new MinecraftText( title );
+        this.title.position.set( -texture.image.width / 2 + 18, texture.image.height / 2 + 1, -4 );
+
+        this.add( this.title );
 
     }
 
     /**
      * Create all items for an shaped crafting recipe
      */
-    async createCraftingShaped( recipe: CraftingShapedRecipeJSON ) {
+    private async createCraftingShaped( recipe: CraftingShapedRecipeJSON ) {
 
         const needed = new Map<string, Item>();
         const promisses = new Array<Promise<void>>();
@@ -141,18 +169,18 @@ export default class Recipe extends Group {
 
                 const name = await Promise.all( ingredients.map( unwrapItem ) );
 
-                promisses.push( new Promise( 
+                promisses.push( new Promise(
 
-                    resolve => needed.set( 
-                        key, 
-                        new Item( 
-                            name.map( maybeToArray ).reduce( ( a, b ) => a.concat( b ) ), 
-                            resolve 
-                        ) 
+                    resolve => needed.set(
+                        key,
+                        new Item(
+                            name.map( maybeToArray ).reduce( ( a, b ) => a.concat( b ) ),
+                            resolve
+                        )
                     )
-                    
+
                 ) );
-                
+
             }
 
         }
@@ -183,7 +211,7 @@ export default class Recipe extends Group {
             }
 
             j++;
-            
+
         }
 
         const result = new Item( recipe.result.item );
@@ -196,7 +224,7 @@ export default class Recipe extends Group {
     /**
      * Create all items for an shapeless crafting recipe
      */
-    async createCraftingShapeless( recipe: CraftingShaplessRecipeJSON ) {
+    private async createCraftingShapeless( recipe: CraftingShaplessRecipeJSON ) {
 
         let i = 0, j = 0;
 
@@ -206,7 +234,7 @@ export default class Recipe extends Group {
             item.position.set( -49 + i * 18, 18 - j * 18, 0 );
 
             this.add( item );
-            
+
             if ( ++i >= 3 ) {
 
                 i = 0;
@@ -227,14 +255,14 @@ export default class Recipe extends Group {
     /**
      * Create all items for an smelting recipe
      */
-    async createCooking( recipe: CookingRecipeJSON ) {
+    private async createCooking( recipe: CookingRecipeJSON ) {
 
-        const ingredient = new Item( 
-            ( await Promise.all( 
-                maybeToArray( recipe.ingredient ).map( unwrapItem ) 
+        const ingredient = new Item(
+            ( await Promise.all(
+                maybeToArray( recipe.ingredient ).map( unwrapItem )
             ) )
             .map( maybeToArray )
-            .reduce( ( a, b ) => a.concat( b ) ) 
+            .reduce( ( a, b ) => a.concat( b ) )
         );
         ingredient.position.set( -32, 18, 0 );
 
@@ -249,20 +277,18 @@ export default class Recipe extends Group {
 
     }
 
-    async createStonecutting( recipe: StonecuttingRecipeJSON ) {
+    private async createStonecutting( recipe: StonecuttingRecipeJSON ) {
 
-        const ingredient = new Item( 
-            ( await Promise.all( 
-                maybeToArray( recipe.ingredient ).map( unwrapItem ) 
+        const ingredient = new Item(
+            ( await Promise.all(
+                maybeToArray( recipe.ingredient ).map( unwrapItem )
             ) )
             .map( maybeToArray )
-            .reduce( ( a, b ) => a.concat( b ) ) 
+            .reduce( ( a, b ) => a.concat( b ) )
         );
-        ingredient.position.set( -32, 18, 0 );
+        ingredient.position.set( -32, 0, 0 );
 
         this.add( ingredient );
-
-        // TODO: add fuel (position -32, 18)
 
         const result = new Item( recipe.result.item );
         result.position.set( 28, 0, 0 );
@@ -271,7 +297,7 @@ export default class Recipe extends Group {
 
     }
 
-    async dispose() {
+    public async dispose() {
 
         const mesh = this.children[0];
 
@@ -301,7 +327,7 @@ export default class Recipe extends Group {
                 child.dispose();
 
             }
-            
+
         }
 
     }

@@ -8,7 +8,7 @@ export default class RecipeJSON {
     toJSON(): any {
 
         return Object.assign( {}, this );
-        
+
     }
 
     static fromJSON( json: any ): RecipeJSON {
@@ -27,11 +27,11 @@ export default class RecipeJSON {
             case 'minecraft:crafting_shaped':
                 recipe = Object.create( CraftingShapedRecipeJSON.prototype );
                 return Object.assign( recipe, json );
-            
+
             case 'minecraft:crafting_shapeless':
                 recipe = Object.create( CraftingShaplessRecipeJSON.prototype );
                 return Object.assign( recipe, json );
-    
+
             case 'minecraft:stonecutting':
                 recipe = Object.create( StonecuttingRecipeJSON.prototype );
                 return Object.assign( recipe, json );

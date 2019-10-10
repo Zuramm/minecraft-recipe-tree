@@ -8,12 +8,13 @@ export default class TagJSON {
     toJSON(): any {
 
         return Object.assign( {}, this );
-        
+
     }
 
     static fromJSON( json: any ): TagJSON {
 
-        let user = Object.create( TagJSON.prototype );
+        // tslint:disable-next-line: typedef
+        let user: TagJSON = Object.create( TagJSON.prototype );
         return Object.assign( user, json );
 
     }

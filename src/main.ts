@@ -1,11 +1,11 @@
-import { 
-    Scene, 
-    Color, 
-    WebGLRenderer, 
-    PerspectiveCamera, 
-    Cache, 
-    ConeGeometry, 
-    MeshBasicMaterial, 
+import {
+    Scene,
+    Color,
+    WebGLRenderer,
+    PerspectiveCamera,
+    Cache,
+    ConeGeometry,
+    MeshBasicMaterial,
     Mesh,
     AxesHelper,
     DirectionalLight,
@@ -20,20 +20,20 @@ import SearchField from './components/SearchField';
 
 Cache.enabled = true;
 
-const scene = new Scene();
+const scene: Scene = new Scene();
 scene.background = new Color( 0x222222 );
 
-const renderer = new WebGLRenderer( { antialias: true } );
+const renderer: WebGLRenderer = new WebGLRenderer( { antialias: true } );
 renderer.setPixelRatio( window.devicePixelRatio );
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-const camera = new PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 1100 );
+const camera: PerspectiveCamera = new PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 1100 );
 camera.position.set( 0, 0, 400 );
 
 // controls
 
-const controls = new MapControls( camera, renderer.domElement );
+const controls: MapControls = new MapControls( camera, renderer.domElement );
 
 controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 controls.dampingFactor = 0.05;
@@ -46,19 +46,19 @@ controls.maxDistance = 1000;
 
 // scene
 
-// const apple = new Item( 'apple' );
+// const apple = new Item( "apple" );
 // scene.add( apple );
 
-// const oakLog = new Item( [ 'oak_log', 'acacia_log', 'birch_log' ] );
+// const oakLog = new Item( [ "oak_log", "acacia_log", "birch_log" ] );
 // oakLog.position.x = 16;
 // scene.add( oakLog );
 
-const axesHelper = new AxesHelper( 8 );
+const axesHelper: AxesHelper = new AxesHelper( 8 );
 axesHelper.position.x = -16;
 axesHelper.position.z = 16;
 scene.add( axesHelper );
 
-const recipe = new Recipe( 'stick' );
+const recipe: Recipe = new Recipe( 'stick' );
 scene.add( recipe );
 
 // const search = new SearchField();
@@ -66,23 +66,23 @@ scene.add( recipe );
 // search.position.y = -32;
 // scene.add( search );
 
-// const text = new MinecraftText( 'hallo', false );
+// const text = new MinecraftText( "hallo", false );
 // text.z = -2
 // scene.add( text );
 
-// White directional light at half intensity shining from the top.
-const directionalLight = new DirectionalLight( 0xffffff, 1 );
+// white directional light at half intensity shining from the top.
+const directionalLight: DirectionalLight = new DirectionalLight( 0xffffff, 1 );
 directionalLight.position.set( -1, 3, 4 );
 scene.add( directionalLight );
 
-const light = new AmbientLight( 0x606060 ); // soft white light
+const light: AmbientLight = new AmbientLight( 0x606060 ); // soft white light
 scene.add( light );
 
 window.addEventListener( 'resize', onWindowResize, false );
 
 animate();
 
-function onWindowResize() {
+function onWindowResize(): void {
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -90,7 +90,7 @@ function onWindowResize() {
 
 }
 
-function animate() {
+function animate(): void {
 
     requestAnimationFrame( animate );
     controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
@@ -98,7 +98,7 @@ function animate() {
 
 }
 
-function render() {
+function render(): void {
 
     renderer.render( scene, camera );
 

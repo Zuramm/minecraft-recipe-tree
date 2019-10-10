@@ -1,56 +1,57 @@
-import { 
-    TextureLoader, 
-    FileLoader, 
-    NearestFilter, 
+import {
+    TextureLoader,
+    FileLoader,
+    NearestFilter,
     PlaneGeometry,
     MeshBasicMaterial,
     Mesh,
     Group,
     BoxGeometry,
-    Vector3,
     MeshLambertMaterial,
     Object3D,
-    Texture
-} from "three";
-import { loadAync } from "../util";
-import ModelJSON from "../json/ModelJSON";
+    Texture,
+    Vector2
+} from 'three';
+import { loadAync } from '../util';
+import ModelJSON, { Face as FaceJSON } from '../json/ModelJSON';
 
-const CYCLE_TIME = 1500;
+const CYCLE_TIME: number = 1500;
 
-const textureLoader = new TextureLoader();
-const jsonLoader = new FileLoader();
+const textureLoader: TextureLoader = new TextureLoader();
+const jsonLoader: FileLoader = new FileLoader();
 
 jsonLoader.setResponseType( 'json' );
 
-// Recursively get parent to the root.
 /**
  * Loads all JSONs to root and return all of them in an array.
- * 
+ *
  * Ignores `builtin`.
  * @param {string} path Path from assetets to item, excluding `.json`
  * @returns {Promise<<Map<string, any>[]>}
  */
 async function getFullDesciption( path: string ): Promise<ModelJSON[]> {
-    const full = new Array<ModelJSON>();
+    const full: Array<ModelJSON> = [];
 
     do {
 
-        const current = ModelJSON.fromJSON( await loadAync.call( jsonLoader, `/assets/models/${path}.json` ) );
+        const current: ModelJSON = ModelJSON.fromJSON(
+            await loadAync.call( jsonLoader, `/assets/models/${path}.json` )
+        );
 
         full.push( current );
 
         path = current.parent;
 
-    } while( path != undefined && !path.startsWith( 'builtin' ) );
+    } while ( path !== undefined && !path.startsWith( 'builtin' ) );
 
     return full;
 }
 
 /**
- * Helper to load minecraft-style textures. Names starting with `#` are 
- * references and will be taken out of `textures`, otherwise they wall be loaded 
+ * Helper to load minecraft-style textures. Names starting with `#` are
+ * references and will be taken out of `textures`, otherwise they wall be loaded
  * from _assets_.
- * @param {Map<String, Texture>} textures A texture library in case name is a 
+ * @param {Map<String, Texture>} textures A texture library in case name is a
  * reference
  * @param {string} name The texture to load
  */
@@ -60,10 +61,9 @@ function getTexture( textures: Map<string, Texture>, name: string ): Texture {
 
         return textures.get( name.substring( 1 ) );
 
-    }
-    else {
+    } else {
 
-        const texture = textureLoader.load( `/assets/${name}.png` );
+        const texture: Texture = textureLoader.load( `/assets/${name}.png` );
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
 
@@ -73,6 +73,16 @@ function getTexture( textures: Map<string, Texture>, name: string ): Texture {
 
 }
 
+function createBlockMaterial( textures: Map<string, Texture>, element: string )
+: MeshLambertMaterial {
+    return new MeshLambertMaterial({
+        map: getTexture(textures, element),
+        name: 'west',
+        transparent: true,
+        alphaTest: 1
+    });
+}
+
 /**
  * A three js object to represent items and blocks
  */
@@ -80,15 +90,17 @@ export default class Item extends Object3D {
 
     public names: string[];
     public index: number;
+    public json: ModelJSON;
+    private intervalID: NodeJS.Timer;
 
     /**
-     * 
+     *
      * @param {string[]} names The name of an item. The item name can start with
      * `minecraft:`
      * @param {*} callback Called when everything is loaded
      */
     public constructor( names: string | string[], callback?: VoidFunction ) {
-        
+
         super();
 
         this.names = Array.isArray(names) ? names : [ names ];
@@ -96,21 +108,25 @@ export default class Item extends Object3D {
 
         this.name = this.names[this.index];
 
-        this.names = this.names.map( name => name.startsWith('minecraft:') ? name.substring(10) : name );
+        this.names = this.names.map(
+            name => name.startsWith('minecraft:') ? name.substring(10) : name
+        );
 
-        const promises = this.names.map( name => this.createMesh( name ) );
+        const promises: Promise<Object3D>[] = this.names.map(
+            name => this.createMesh( name )
+        );
 
         this.load( Promise.all( promises ) ).then( callback );
 
     }
 
-    async load( allPromise: Promise<Object3D[]> ) {
+    private async load( allPromise: Promise<Object3D[]> ): Promise<void> {
 
-        const all = await allPromise;
+        const all: Object3D[] = await allPromise;
 
         this.add( ...all );
 
-        for ( let i = 1; i < this.children.length; i++ ) {
+        for ( let i: number = 1; i < this.children.length; i++ ) {
 
             this.children[i].visible = false;
 
@@ -118,7 +134,7 @@ export default class Item extends Object3D {
 
         if ( this.names.length > 1 ) {
 
-            setInterval( () => this.cycle(), CYCLE_TIME, this );
+            this.intervalID = setInterval( () => this.cycle(), CYCLE_TIME, this );
 
         }
 
@@ -126,12 +142,12 @@ export default class Item extends Object3D {
 
     }
 
-    cycle() {
+    private cycle(): void {
 
         this.children[this.index].visible = false;
 
         this.index = (this.index + 1) % this.children.length;
-        
+
         this.children[this.index].visible = true;
 
     }
@@ -140,25 +156,27 @@ export default class Item extends Object3D {
      * Load the required JSON and either create an SpriteItem or ModelItem.
      * @param {string} name Name of the item to create
      */
-    async createMesh( name: string ): Promise<Object3D> {
+    private async createMesh( name: string ): Promise<Object3D> {
 
-        const desc = ModelJSON.fromJSON( await loadAync.call( jsonLoader, `/assets/models/item/${name}.json` ) );
+        const desc: ModelJSON = ModelJSON.fromJSON( await loadAync.call(
+            jsonLoader,
+            `/assets/models/item/${name}.json` )
+        );
 
         if ( desc.parent.startsWith( 'item' ) ) {
 
             this.type = 'Item';
 
-            const item = await this.createSpriteItem( desc );
+            const item: Mesh = await this.createSpriteItem( desc );
             item.name = name;
 
             return item;
 
-        }
-        else {
+        } else {
 
             this.type = 'Block';
 
-            const block = await this.createModelItem( desc );
+            const block: Group = await this.createModelItem( desc );
             block.name = name;
 
             return block;
@@ -171,34 +189,41 @@ export default class Item extends Object3D {
      * Loads the neccessary textures and puts them on a plane.
      * @param {Map<string, any>} desc The JSON description of an item
      */
-    async createSpriteItem( desc: ModelJSON ): Promise<Mesh> {
+    private async createSpriteItem( desc: ModelJSON ): Promise<Mesh> {
 
-        const texture = textureLoader.load( `/assets/${ desc.textures.get( 'layer0' ) }.png` );
+        const texture: Texture = textureLoader.load(
+            `/assets/${ desc.textures.get( 'layer0' ) }.png`
+        );
         texture.name = desc.textures.get( 'layer0' );
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
 
-        const geometry = new PlaneGeometry( 16, 16 );
-        const material = new MeshBasicMaterial( { map: texture, transparent: true, alphaTest: 1 } );
-        const plane = new Mesh( geometry, material );
+        const geometry: PlaneGeometry = new PlaneGeometry( 16, 16 );
+        const material: MeshBasicMaterial = new MeshBasicMaterial( {
+            map: texture,
+            transparent: true,
+            alphaTest: 1
+        } );
+        const plane: Mesh = new Mesh( geometry, material );
 
         return plane;
 
     }
 
     /**
-     * Loads the neccessary parent models and textures and builds the model and textures it.
+     * Loads the neccessary parent models and textures and builds the model and
+     * textures it.
      * @param {Map<string, any>} desc The JSON description of an model
      */
-    async createModelItem( desc: ModelJSON ): Promise<Group> {
+    private async createModelItem( desc: ModelJSON ): Promise<Group> {
 
-        const allDescs = await getFullDesciption( desc.parent );
+        const allDescs: ModelJSON[] = await getFullDesciption( desc.parent );
 
-        let block = new Group();
+        let block: Group = new Group();
 
-        let elementsGenerated = false;
+        let elementsGenerated: boolean = false;
 
-        const textures = new Map<string, Texture>();
+        const textures: Map<string, Texture> = new Map<string, Texture>();
 
         for ( const description of allDescs ) {
 
@@ -208,8 +233,8 @@ export default class Item extends Object3D {
 
                     if ( description.textures.hasOwnProperty( name ) ) {
 
-                        const path = description.textures.get( name );
-                        
+                        const path: string = description.textures.get( name );
+
                         textures.set( name, getTexture( textures, path ) );
                         textures.get( name ).name = name;
 
@@ -223,38 +248,35 @@ export default class Item extends Object3D {
                 elementsGenerated = true;
 
                 for ( const element of description.elements ) {
-                    
-                    const geometry = new BoxGeometry( ...element.to.map( ( e, i ) => e - element.from[i] ) );
 
-                    const materials = [
-                        new MeshLambertMaterial( { map: getTexture( textures, element.faces.east.texture ), name: 'east', transparent: true, alphaTest: 1 } ),
-                        new MeshLambertMaterial( { map: getTexture( textures, element.faces.west.texture ), name: 'west', transparent: true, alphaTest: 1 } ),
-                        new MeshLambertMaterial( { map: getTexture( textures, element.faces.up.texture ), name: 'up', transparent: true, alphaTest: 1 } ),
-                        new MeshLambertMaterial( { map: getTexture( textures, element.faces.down.texture ), name: 'down', transparent: true, alphaTest: 1 } ),
-                        new MeshLambertMaterial( { map: getTexture( textures, element.faces.south.texture ), name: 'south', transparent: true, alphaTest: 1 } ),
-                        new MeshLambertMaterial( { map: getTexture( textures, element.faces.north.texture ), name: 'north', transparent: true, alphaTest: 1 } )
-                    ];
+                    const geometry: BoxGeometry = new BoxGeometry(
+                        ...element.to.map( ( e, i ) => e - element.from[i] )
+                    );
 
-                    const faces = [
+                    const faceList: FaceJSON[] = [
                         element.faces.east,
                         element.faces.west,
                         element.faces.up,
                         element.faces.down,
                         element.faces.south,
                         element.faces.north
-                    ]
+                    ];
 
-                    for ( let i = 0; i < geometry.faceVertexUvs[0].length; i++ ) {
+                    const materials: MeshLambertMaterial[] = faceList.map(
+                        face => createBlockMaterial( textures, face.texture )
+                    );
 
-                        const face = geometry.faceVertexUvs[0][i];
-                        const elementFace = faces[ i >> 1 ];
+                    for ( let i: number = 0; i < geometry.faceVertexUvs[0].length; i++ ) {
+
+                        const face: Vector2[] = geometry.faceVertexUvs[0][i];
+                        const elementFace: FaceJSON = faceList[ i >> 2 ];
 
                         if ( elementFace.uv != null ) {
 
                             for ( const edge of face ) {
 
-                                edge.x = edge.x == 0 ? elementFace.uv[0] : elementFace.uv[2];
-                                edge.y = edge.y == 0 ? 16 - elementFace.uv[3] : 16 - elementFace.uv[1];
+                                edge.x = edge.x === 0 ? elementFace.uv[0] : elementFace.uv[2];
+                                edge.y = edge.y === 0 ? 16 - elementFace.uv[3] : 16 - elementFace.uv[1];
 
                                 edge.divideScalar( 16 );
 
@@ -266,8 +288,8 @@ export default class Item extends Object3D {
 
                     geometry.uvsNeedUpdate = true;
 
-                    const mesh = new Mesh( geometry, materials );
-                    const position = element.from.map( ( e, i ) => ( e + element.to[i] ) / 2 - 8 );
+                    const mesh: Mesh = new Mesh( geometry, materials );
+                    const position: number[] = element.from.map( ( e, i ) => ( e + element.to[i] ) / 2 - 8 );
                     mesh.position.set( position[0], position[1], position[2] );
 
                     block.add( mesh );
@@ -278,9 +300,9 @@ export default class Item extends Object3D {
 
             if ( description.display != null && description.display.gui != null ) {
 
-                const rotation = description.display.gui.rotation.map(e => e / 180 * Math.PI);
-                const translation = description.display.gui.translation;
-                const scale = description.display.gui.scale;
+                const rotation: number[] = description.display.gui.rotation.map(e => e / 180 * Math.PI);
+                const translation: number[] = description.display.gui.translation;
+                const scale: number[] = description.display.gui.scale;
 
                 block.rotation.set( rotation[0], rotation[1], rotation[2], 'XYZ' );
                 block.position.set( translation[0], translation[1], translation[2] );
@@ -294,14 +316,15 @@ export default class Item extends Object3D {
 
     }
 
-    public dispose() {
+    public dispose(): void {
 
-        if ( this.type == 'Item' ) {
+        clearInterval( this.intervalID );
+
+        if ( this.type === 'Item' ) {
 
             this.disposeItem();
 
-        }
-        else {
+        } else {
 
             this.disposeBlock();
 
@@ -309,9 +332,9 @@ export default class Item extends Object3D {
 
     }
 
-    disposeItem() {
+    private disposeItem(): void {
 
-        const mesh = this.children[0]
+        const mesh: Object3D = this.children[0];
 
         if ( mesh instanceof Mesh ) {
 
@@ -321,21 +344,21 @@ export default class Item extends Object3D {
 
     }
 
-    disposeBlock() {
+    private disposeBlock(): void {
 
         this.children[0].children.forEach(mesh => {
 
             if ( mesh instanceof Mesh ) {
 
                 this.disposeMesh( mesh );
-    
+
             }
-            
+
         });
 
     }
 
-    disposeMesh( mesh: Mesh ) {
+    private disposeMesh( mesh: Mesh ): void {
 
         mesh.geometry.dispose();
 
@@ -343,13 +366,12 @@ export default class Item extends Object3D {
 
             mesh.material.forEach(mat => mat.dispose());
 
-        }
-        else {
+        } else {
 
             mesh.material.dispose();
 
         }
-        
+
     }
 
 }
