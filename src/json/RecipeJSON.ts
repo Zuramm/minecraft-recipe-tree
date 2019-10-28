@@ -1,3 +1,5 @@
+import { zipArray } from '../util';
+
 export default class RecipeJSON {
 
     public constructor(
@@ -67,7 +69,7 @@ export class CraftingShapedRecipeJSON extends RecipeJSON {
         type: string,
         group: string,
         public pattern: string[],
-        public key: Map<string, Ingredient|Ingredient[]>,
+        public key: {[s: string]: Ingredient|Ingredient[]},
         public result: Result
     ) {
         super( type, group );

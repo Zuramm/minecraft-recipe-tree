@@ -165,7 +165,7 @@ export default class Recipe extends Group {
 
             if ( recipe.key.hasOwnProperty( key ) ) {
 
-                const ingredients = maybeToArray( recipe.key.get( key ) );
+                const ingredients = maybeToArray( recipe.key[ key ] );
 
                 const name = await Promise.all( ingredients.map( unwrapItem ) );
 

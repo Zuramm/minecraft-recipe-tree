@@ -14,6 +14,10 @@ import {
 } from 'three';
 import { loadAync } from '../util';
 import ModelJSON, { Face as FaceJSON } from '../json/ModelJSON';
+import {
+    setInterval,
+    clearInterval
+} from 'timers';
 
 const CYCLE_TIME: number = 1500;
 
@@ -77,7 +81,7 @@ function createBlockMaterial( textures: Map<string, Texture>, element: string )
 : MeshLambertMaterial {
     return new MeshLambertMaterial({
         map: getTexture(textures, element),
-        name: 'west',
+        name: element,
         transparent: true,
         alphaTest: 1
     });
@@ -192,9 +196,9 @@ export default class Item extends Object3D {
     private async createSpriteItem( desc: ModelJSON ): Promise<Mesh> {
 
         const texture: Texture = textureLoader.load(
-            `/assets/${ desc.textures.get( 'layer0' ) }.png`
+            `/assets/${ desc.textures[ 'layer0' ] }.png`
         );
-        texture.name = desc.textures.get( 'layer0' );
+        texture.name = desc.textures[ 'layer0' ];
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
 
@@ -233,10 +237,11 @@ export default class Item extends Object3D {
 
                     if ( description.textures.hasOwnProperty( name ) ) {
 
-                        const path: string = description.textures.get( name );
+                        const path: string = description.textures[ name ];
+                        const texture: Texture = getTexture( textures, path );
+                        texture.name = name;
 
-                        textures.set( name, getTexture( textures, path ) );
-                        textures.get( name ).name = name;
+                        textures.set( name, texture );
 
                     }
                 }

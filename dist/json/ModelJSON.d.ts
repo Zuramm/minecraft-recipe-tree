@@ -2,9 +2,13 @@ export default class ModelJSON {
     parent: string;
     ambientocclusion: boolean;
     display: Display;
-    textures: Map<string, string>;
+    textures: {
+        [s: string]: string;
+    };
     elements: Element[];
-    constructor(parent: string, ambientocclusion: boolean, display: Display, textures: Map<string, string>, elements: Element[]);
+    constructor(parent: string, ambientocclusion: boolean, display: Display, textures: {
+        [s: string]: string;
+    }, elements: Element[]);
     toJSON(): any;
     static fromJSON(json: any): ModelJSON;
 }
@@ -20,25 +24,25 @@ export declare class Display {
     constructor(thirdperson_righthand: Transform, thirdperson_lefthand: Transform, firstperson_righthand: Transform, firstperson_lefthand: Transform, gui: Transform, head: Transform, ground: Transform, fixed: Transform);
 }
 export declare class Transform {
-    rotation: number[];
-    translation: number[];
-    scale: number[];
-    constructor(rotation: number[], translation: number[], scale: number[]);
+    rotation: [number, number, number];
+    translation: [number, number, number];
+    scale: [number, number, number];
+    constructor(rotation: [number, number, number], translation: [number, number, number], scale: [number, number, number]);
 }
 export declare class Element {
-    from: number[];
-    to: number[];
+    from: [number, number, number];
+    to: [number, number, number];
     rotation: Rotation;
     shade: boolean;
     faces: Faces;
-    constructor(from: number[], to: number[], rotation: Rotation, shade: boolean, faces: Faces);
+    constructor(from: [number, number, number], to: [number, number, number], rotation: Rotation, shade: boolean, faces: Faces);
 }
 export declare class Rotation {
-    origin: number[];
+    origin: [number, number, number];
     axis: Axis;
     angle: number;
     rescale: boolean;
-    constructor(origin: number[], axis: Axis, angle: number, rescale?: boolean);
+    constructor(origin: [number, number, number], axis: Axis, angle: number, rescale?: boolean);
 }
 export declare enum Axis {
     x = "x",
@@ -55,10 +59,10 @@ export declare class Faces {
     constructor(down: Face, up: Face, north: Face, south: Face, west: Face, east: Face);
 }
 export declare class Face {
-    uv: number[];
+    uv: [number, number, number, number];
     texture: string;
     cullface: string;
     rotation: number;
     tintindex: number;
-    constructor(uv: number[], texture: string, cullface: string, rotation: number, tintindex: number);
+    constructor(uv: [number, number, number, number], texture: string, cullface: string, rotation: number, tintindex: number);
 }

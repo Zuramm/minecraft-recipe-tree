@@ -1,5 +1,10 @@
-import { createMinecraftChar, getCharWidth } from "./MinecraftText";
-import { Group, Mesh } from "three";
+import { createMinecraftChar, getCharWidth } from './MinecraftText';
+import { Group, Mesh } from 'three';
+
+import {
+    setInterval,
+    clearInterval
+} from 'timers';
 
 export default class SearchField extends Group {
 
@@ -12,7 +17,7 @@ export default class SearchField extends Group {
 
         super();
 
-        this.renderOrder == 100;
+        this.renderOrder === 100;
 
         this.cursor = createMinecraftChar( '_', false );
         this.cursor.position.set( getCharWidth( '_' ) / 2, 4, 0 );
@@ -33,7 +38,7 @@ export default class SearchField extends Group {
 
             const mesh = createMinecraftChar( char, false );
             const charWidth = getCharWidth( char );
-            
+
             mesh.position.set( this.textPosition + charWidth / 2, 4, 0 );
             this.textPosition += charWidth;
 
@@ -50,7 +55,7 @@ export default class SearchField extends Group {
         amount = Math.min( amount, this.text.length );
 
         for (let i = 0; i < amount; i++) {
-            
+
             const last = this.children[ this.children.length - 1 ];
 
             if (last instanceof Mesh) {

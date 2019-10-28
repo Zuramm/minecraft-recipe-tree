@@ -4,7 +4,7 @@ export default class ModelJSON {
         public parent: string,
         public ambientocclusion: boolean = true,
         public display: Display,
-        public textures: Map<string, string>,
+        public textures: {[s: string]: string},
         public elements: Element[]
     ) {}
 
@@ -17,7 +17,7 @@ export default class ModelJSON {
     static fromJSON( json: any ): ModelJSON {
 
         let user = Object.create( ModelJSON.prototype );
-        return Object.assign( user, json );
+        return Object.assign( user, json, json.hasOwnProperty( 'textures' ) );
 
     }
 
@@ -41,9 +41,9 @@ export class Display {
 export class Transform {
 
     public constructor(
-        public rotation: number[],
-        public translation: number[],
-        public scale: number[]
+        public rotation: [number, number, number],
+        public translation: [number, number, number],
+        public scale: [number, number, number]
     ) {}
 
 }
@@ -51,8 +51,8 @@ export class Transform {
 export class Element {
 
     public constructor(
-        public from: number[],
-        public to: number[],
+        public from: [number, number, number],
+        public to: [number, number, number],
         public rotation: Rotation,
         public shade: boolean = true,
         public faces: Faces
@@ -63,7 +63,7 @@ export class Element {
 export class Rotation {
 
     public constructor(
-        public origin: number[],
+        public origin: [number, number, number],
         public axis: Axis,
         public angle: number,
         public rescale: boolean = false
@@ -93,7 +93,7 @@ export class Faces {
 export class Face {
 
     public constructor(
-        public uv: number[],
+        public uv: [number, number, number, number],
         public texture: string,
         public cullface: string,
         public rotation: number = 0,

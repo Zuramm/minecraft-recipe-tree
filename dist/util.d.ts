@@ -6,3 +6,4 @@
  */
 export declare function loadAync(url: string): Promise<any>;
 export declare function maybeToArray<T>(maybe: T | T[]): T[];
+export declare function zipArray<T>(a: T[], b: T[]): T[][];

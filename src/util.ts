@@ -27,3 +27,17 @@ export function maybeToArray<T>( maybe: T|T[] ): T[] {
     }
 
 }
+
+export function zipArray<T>( a: T[], b: T[] ): T[][] {
+
+    const result: T[][] = [];
+
+    for ( let i: number = 0; i < Math.min( a.length, b.length ); i++ ) {
+
+        result[ i ] = [ a[ i ], b[ i ] ];
+
+    }
+
+    return result;
+
+}

@@ -14,9 +14,13 @@ export declare class CookingRecipeJSON extends RecipeJSON {
 }
 export declare class CraftingShapedRecipeJSON extends RecipeJSON {
     pattern: string[];
-    key: Map<string, Ingredient | Ingredient[]>;
+    key: {
+        [s: string]: Ingredient | Ingredient[];
+    };
     result: Result;
-    constructor(type: string, group: string, pattern: string[], key: Map<string, Ingredient | Ingredient[]>, result: Result);
+    constructor(type: string, group: string, pattern: string[], key: {
+        [s: string]: Ingredient | Ingredient[];
+    }, result: Result);
 }
 export declare class CraftingShaplessRecipeJSON extends RecipeJSON {
     ingredients: Ingredient | Ingredient[];
