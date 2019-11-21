@@ -51483,7 +51483,7 @@ class Item extends three_1.Object3D {
      */
     constructor(names, callback) {
         super();
-        this.names = Array.isArray(names) ? names : [names];
+        this.names = names === undefined ? [] : Array.isArray(names) ? names : [names];
         this.index = 0;
         this.name = this.names[this.index];
         this.names = this.names.map(name => name.startsWith('minecraft:') ? name.substring(10) : name);
@@ -51493,6 +51493,8 @@ class Item extends three_1.Object3D {
     load(allPromise) {
         return __awaiter(this, void 0, void 0, function* () {
             const all = yield allPromise;
+            if (all.length === 0)
+                return;
             this.add(...all);
             for (let i = 1; i < this.children.length; i++) {
                 this.children[i].visible = false;
@@ -51908,26 +51910,14 @@ class Recipe extends three_1.Group {
      */
     createCraftingShaped(recipe) {
         return __awaiter(this, void 0, void 0, function* () {
-            const needed = new Map();
-            const promisses = new Array();
-            for (const key in recipe.key) {
-                if (recipe.key.hasOwnProperty(key)) {
-                    const ingredients = util_1.maybeToArray(recipe.key[key]);
-                    const name = yield Promise.all(ingredients.map(unwrapItem));
-                    promisses.push(new Promise(resolve => needed.set(key, new Item_1.default(name.map(util_1.maybeToArray).reduce((a, b) => a.concat(b)), resolve))));
-                }
-            }
-            yield Promise.all(promisses);
-            // 65, 34
             let j = 0;
             for (const row of recipe.pattern) {
                 let i = 0;
                 for (const cell of row) {
-                    if (needed.hasOwnProperty(cell)) {
-                        const item = needed.get(cell).clone(false);
-                        item.position.set(-49 + i * 18, 18 - j * 18, 0);
-                        this.add(item);
-                    }
+                    const itemNames = yield Promise.all(util_1.maybeToArray(recipe.key[cell]).map(unwrapItem));
+                    const item = new Item_1.default(itemNames.flat());
+                    item.position.set(-49 + i * 18, 18 - j * 18, 0);
+                    this.add(item);
                     i++;
                 }
                 j++;
@@ -52279,7 +52269,7 @@ const axesHelper = new three_1.AxesHelper(8);
 axesHelper.position.x = -16;
 axesHelper.position.z = 16;
 scene.add(axesHelper);
-const recipe = new Recipe_1.default('stick');
+const recipe = new Recipe_1.default('loom');
 scene.add(recipe);
 // const search = new SearchField();
 // search.position.z = -4;

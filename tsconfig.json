@@ -4,14 +4,19 @@
       "sourceMap": true,
       "noImplicitAny": true,
       "module": "commonjs",
-      "target": "es6",
+      "target": "es2016",
       "declaration": true,
       "allowSyntheticDefaultImports": true,
       "esModuleInterop": true,
-      "lib": [ 
+      "lib": [
         "es6",
         "dom",
-        "es2017.object"
+        "dom.iterable",
+        "es2016.array.include",
+        "es2017.object",
+        "es2018.promise",
+        "es2019.array",
+        "es2019.object",
       ],
     },
     "include": [

@@ -158,37 +158,6 @@ export default class Recipe extends Group {
      */
     private async createCraftingShaped( recipe: CraftingShapedRecipeJSON ) {
 
-        const needed = new Map<string, Item>();
-        const promisses = new Array<Promise<void>>();
-
-        for ( const key in recipe.key ) {
-
-            if ( recipe.key.hasOwnProperty( key ) ) {
-
-                const ingredients = maybeToArray( recipe.key[ key ] );
-
-                const name = await Promise.all( ingredients.map( unwrapItem ) );
-
-                promisses.push( new Promise(
-
-                    resolve => needed.set(
-                        key,
-                        new Item(
-                            name.map( maybeToArray ).reduce( ( a, b ) => a.concat( b ) ),
-                            resolve
-                        )
-                    )
-
-                ) );
-
-            }
-
-        }
-
-        await Promise.all( promisses );
-
-        // 65, 34
-
         let j = 0;
 
         for (const row of recipe.pattern) {
@@ -197,14 +166,12 @@ export default class Recipe extends Group {
 
             for (const cell of row) {
 
-                if ( needed.hasOwnProperty( cell ) ) {
+                const itemNames = await Promise.all(maybeToArray(recipe.key[cell]).map(unwrapItem));
 
-                    const item = needed.get( cell ).clone( false );
-                    item.position.set( -49 + i * 18, 18 - j * 18, 0 );
+                const item = new Item(itemNames.flat());
+                item.position.set( -49 + i * 18, 18 - j * 18, 0 );
 
-                    this.add( item );
-
-                }
+                this.add( item );
 
                 i++;
 

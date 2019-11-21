@@ -107,7 +107,7 @@ export default class Item extends Object3D {
 
         super();
 
-        this.names = Array.isArray(names) ? names : [ names ];
+        this.names = names === undefined ? [] : Array.isArray(names) ? names : [ names ];
         this.index = 0;
 
         this.name = this.names[this.index];
@@ -127,6 +127,9 @@ export default class Item extends Object3D {
     private async load( allPromise: Promise<Object3D[]> ): Promise<void> {
 
         const all: Object3D[] = await allPromise;
+
+        if (all.length === 0)
+            return;
 
         this.add( ...all );
 

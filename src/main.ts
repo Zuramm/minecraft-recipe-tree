@@ -58,7 +58,7 @@ axesHelper.position.x = -16;
 axesHelper.position.z = 16;
 scene.add( axesHelper );
 
-const recipe: Recipe = new Recipe( 'stick' );
+const recipe: Recipe = new Recipe( 'loom' );
 scene.add( recipe );
 
 // const search = new SearchField();
